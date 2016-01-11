@@ -37,7 +37,8 @@
 
 install.packages("dplyr")
 library(dplyr)
-
+install.packages(lattice)
+library(lattice)
 ## Read in the Activity data
 activity.data <- read.table("../data/activity.csv",sep=",", 
                             colClasses=c("integer","Date","integer"),
@@ -147,35 +148,16 @@ activity.data.imputed<-mutate(activity.data.imputed, as.factor(day))
 ## (x-axis) and the average number of steps taken, averaged across all weekday days 
 ## or weekend days (y-axis). 
 
-### Seperate weekday and weekend data
-
-weekday.activity <- filter(activity.data.imputed, day=="weekday")
-weekend.activity <- filter(activity.data.imputed, day=="weekend")
-
 ### group each by 5 minute interval and calculate average number of steps per interval
 
-weekday.interval.activity <- select(weekday.activity,interval,steps)  ## subset data to just the columns we need
-weekday.interval.activity <- group_by(weekday.interval.activity,interval)  ##  Group data by 5-minute time interval
-
-weekend.interval.activity <- select(weekend.activity,interval,steps)  ## subset data to just the columns we need
-weekend.interval.activity <- group_by(weekend.interval.activity,interval)  ##  Group data by 5-minute time interval
+interval.activity.imputed <- select(activity.data.imputed,interval,steps,day)  ## subset data to just the columns we need
+interval.activity.imputed <- group_by(interval.activity.imputed,day,interval)  ##  Group data by 5-minute time interval
 
 ### Calculate the mean for each interval
 
-weekday.interval.activity <- summarise_each(weekday.interval.activity,funs(mean(steps, na.rm=TRUE)))  ## sum the data for each date
-weekend.interval.activity <- summarise_each(weekend.interval.activity,funs(mean(steps, na.rm=TRUE)))  ## sum the data for each date
-
+interval.activity.imputed <- summarise_each(interval.activity.imputed,funs(mean(steps, na.rm=TRUE)))  ## sum the data for each date
 
 ### Create panel plot
-#png(filename="figure/Plot4-Time-Mean-Imputed.png")   ## Open the output file
-par(mfrow = c(2, 1))  ## Specify that plots will be arranged in 2 rows of 1 plots
-
-with(weekday.interval.activity,plot(interval,steps,col="red", type="l",
-                           main="Average (Mean) Steps per 5-minute Time Interval During Weekdays", 
-                           xlab="Time Interval", ylab="Mean Steps"  ))
-
-with(weekend.interval.activity,plot(interval,steps,col="red", type="l",
-                                    main="Average (Mean) Steps per 5-minute Time Interval During Weekends", 
-                                    xlab="Time Interval", ylab="Mean Steps"  ))
-
-#dev.off()    ##  Close the output file
+xyplot(steps~interval|day,data=interval.activity.imputed,
+       layout=c(1,2),type="l",
+       xlab="Time Interval",ylab="Mean Steps")

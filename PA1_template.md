@@ -14,11 +14,12 @@ The dataset is stored in a comma-separated-value (CSV) file and there are a tota
 
 ## Loading and preprocessing the data
 
-**Note:** The code included assumes that the data file is stored in a "data" sub-directory, and that the *dplyr* package is installed.
+**Note:** The code included assumes that the data file is stored in a "data" sub-directory, and that the *dplyr* and *lattice* packages are installed.
 Load *dplyr* library:
 
 ```r
 library(dplyr)
+library(lattice)
 ```
 
 The activity data from the CSV file is read into a data table:
@@ -237,41 +238,24 @@ activity.data.imputed<-mutate(activity.data.imputed, as.factor(day))
 
 A panel-plot can be created to compare the mean activity pattern for each 5 minute intervals between weekdays and weekends.
 
-To do this, the data will be separated into two tables; one for the weekday values and the other for the weekend values:
-
 
 ```r
-### Seperate weekday and weekend data
-
-weekday.activity <- filter(activity.data.imputed, day=="weekday")
-weekend.activity <- filter(activity.data.imputed, day=="weekend")
-
 ### group each by 5 minute interval and calculate average number of steps per interval
 
-weekday.interval.activity<-select(weekday.activity,interval,steps)  ## subset data to just the columns we need
-weekday.interval.activity <- group_by(weekday.interval.activity,interval)  ##  Group data by 5-minute time interval
-
-weekend.interval.activity<-select(weekend.activity,interval,steps)  ## subset data to just the columns we need
-weekend.interval.activity <- group_by(weekend.interval.activity,interval)  ##  Group data by 5-minute time interval
+interval.activity.imputed <- select(activity.data.imputed,interval,steps,day)  ## subset data to just the columns we need
+interval.activity.imputed <- group_by(interval.activity.imputed,day,interval)  ##  Group data by 5-minute time interval
 
 ### Calculate the mean for each interval
 
-weekday.interval.activity <- summarise_each(weekday.interval.activity,funs(mean(steps, na.rm=TRUE)))  ## sum the data for each date
-weekend.interval.activity <- summarise_each(weekend.interval.activity,funs(mean(steps, na.rm=TRUE)))  ## sum the data for each date
+interval.activity.imputed <- summarise_each(interval.activity.imputed,funs(mean(steps, na.rm=TRUE)))  ## sum the data for each date
 ```
 From these data tables the two plots can be produced and compared.
 
 
 ```r
-par(mfrow = c(2, 1))  ## Specify that plots will be arranged in 2 rows of 1 plots
-
-with(weekday.interval.activity,plot(interval,steps,col="red", type="l",
-                            main="Average (Mean) Steps per 5-minute Time Interval During Weekdays", 
-                            xlab="Time Interval", ylab="Mean Steps"  ))
-
-with(weekend.interval.activity,plot(interval,steps,col="red", type="l",
-                                    main="Average (Mean) Steps per 5-minute Time Interval During Weekends", 
-                                    xlab="Time Interval", ylab="Mean Steps"  ))
+xyplot(steps~interval|day,data=interval.activity.imputed,
+       layout=c(1,2),type="l",
+       xlab="Time Interval",ylab="Mean Steps")
 ```
 
 ![](PA1_template_files/figure-html/panelplot-1.png)\
