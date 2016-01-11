@@ -5,29 +5,29 @@ output:
     keep_md: true
 ---
 ## Introduction
-The purpose of this report is to display the results of exploratory data analysis of human activity data as measured by the embedded gyroscope and accelerometer a personal activity monitoring device.
+The purpose of this report is to display the results of exploratory data analysis of human activity data as measured by the embedded gyroscope and accelerometer in a personal activity monitoring device.
 
-The data consists of two months of data from an anonymous individual collected during the months of October and November, 2012 and includes the number of steps taken in 5 minute intervals each day.
+The data consists of two months of data from an anonymous individual collected during the months of October and November, 2012 and includes the number of steps taken in 5-minute intervals each day.
 
 The variables included in this dataset are:  
-* steps: Number of steps taking in a 5-min interval (missing values are coded as NA).  
+* steps: Number of steps taken in a 5-minute interval (missing values are coded as NA).  
 * date: The date on which the measurement was taken in YYYY-MM-DD format.  
-* interval: Identifier for the 5-min interval in which measurement was taken.  
+* interval: Identifier for the 5-minute interval in which the measurement was taken.  
 
 The dataset is stored in a comma-separated-value (CSV) file and there are a total of 
 17,568 observations in this dataset.
 
 ## Loading and preprocessing the data
 
-**Note:** The code included assumes that the *dplyr* package is installed.
+**Note:** The code included assumes that the data file is stored in a "data" sub-directory, and that the *dplyr* package is installed.
 Load *dplyr* library:
-```{r loadlib, results="hide"}
+```{r loadlib, message=FALSE}
 library(dplyr)
 ```
 
-Read in the Activity data from the CSV file:
+The activity data from the CSV file is read into a data table:
 ```{r readcsv}
-activity.data <- read.table("../data/activity.csv",sep=",", 
+activity.data <- read.table("data/activity.csv",sep=",", 
                             colClasses=c("integer","Date","integer"),
                             header=TRUE)
 ```
@@ -42,7 +42,7 @@ summary(activity.data)
 ```
 
 ## What is mean total number of steps taken per day?
-Calculate the total number of steps taken each day.  To do this data is grouped by *day* and sum of each group is calculated.
+To calculate the total number of steps taken each day, the data is grouped by *day* and sum of each group is calculated.
 ```{r sumdaily}
 daily.activity<-select(activity.data,date,steps)  ## subset data to just the columns we need
 
@@ -50,7 +50,7 @@ daily.activity <- group_by(daily.activity,date)  ##  Group data by date
 
 daily.activity <- summarise_each(daily.activity,funs(sum(steps)))  ## sum the data for each date
 ```
-Create a histogram plot of the total steps taken each day:
+A histogram plot of the total steps taken each day can then be created:
 ```{r histosum}
 par(mfrow = c(1, 1))  ## Specify that plots will be arranged in 1 rows of 1 plots
 
@@ -82,7 +82,7 @@ print(paste("Median total daily steps taken: ",as.numeric(median.steps),sep=" ")
 ## What is the average daily activity pattern?
 This section will analyse the average daily activity pattern and produce a time series plot of the 5-minute interval (x-axis) and the averagenumber of steps taken, averaged across all days (y-axis).
 
-To do this the data is grouped based on *interval* and calculate teh mean for each 5 minute interval:
+To do this the data is grouped based on *interval*. The mean is then calculated for each 5 minute interval:
 ```{r intervalmeans}
 interval.activity<-select(activity.data,interval,steps)  ## subset data to just the columns we need
 
@@ -103,13 +103,13 @@ with(interval.activity,plot(interval,steps,col="red", type="l",
 
 The raw data file contains many missing values for the number of steps.  These are represented in the data file as "NA" values.
 
-The number of "NA" values can be determined as follows:
+The number of "NA" values is shown in the output from the *summary()* command shown above, but can also be determined as follows:
 
 ```{r printNA}
 print(paste("Number of missing values is:",sum(is.na(activity.data[,1])),sep=" "))
 ```
 
-Values for the "NA" entries can be imputed from the mean value for the respective 5-minute interval.
+Values for the "NA" entries can be imputed from the mean value for the respective 5-minute intervals.
 
 A new data table will be created for adding imputed values:
 ```{r copytable}
@@ -168,7 +168,7 @@ print(paste("Median total daily steps taken: ",(as.numeric(median.steps.imputed)
 The mean is unchanged and the median is only slightly different.  The fact that the median and the mean are identical is an interesting result.
 
 ## Are there differences in activity patterns between weekdays and weekends?
-To determine if there is any difference in activity patterns between weekdays and weekends it will be necessary to create a new factor variable (*day*) in the dataset with two levels: “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
+To determine if there is any difference in activity patterns between weekdays and weekends it will be necessary to create a new factor variable (*day*) in the data-set with two levels: “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
 
 ```{r addfactor}
 ### add a column called "day" based on "date" field
@@ -192,7 +192,7 @@ for ( iptr in 1:nrow(activity.data.imputed)) {          ## for each row in the d
 activity.data.imputed<-mutate(activity.data.imputed, as.factor(day))
 ```
 
-A panel plot can be created to compare the mean activity pattern for each 5 minute intervals between weekdays and weekends.
+A panel-plot can be created to compare the mean activity pattern for each 5 minute intervals between weekdays and weekends.
 
 To do this, the data will be separated into two tables; one for the weekday values and the other for the weekend values:
 
@@ -230,4 +230,4 @@ with(weekend.interval.activity,plot(interval,steps,col="red", type="l",
                                     xlab="Time Interval", ylab="Mean Steps"  ))
 
 ```
-From the above plot it can be seen that there are diffences in activity patterns on weekends compared to weekdays, th emost significant being the high average number of steps that occurs arround 7:00AM on weekdays.
+From the above plot it can be seen that there are diffences in activity patterns on weekends compared to weekdays, the most significant being the high average number of steps that occurs arround 7:00AM on weekdays.
